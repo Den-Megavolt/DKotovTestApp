@@ -2,6 +2,7 @@ package com.example.dkotov.ximtestapp.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import com.example.dkotov.ximtestapp.R;
-import com.example.dkotov.ximtestapp.XimTestApp;
 import com.example.dkotov.ximtestapp.model.DataItem;
 import com.example.dkotov.ximtestapp.model.MessageEvent;
 import com.example.dkotov.ximtestapp.util.DataReceiver;
@@ -33,15 +33,15 @@ import java.util.List;
 public class CatsFragment extends Fragment {
 
     private static final String TAG = "XimTestApp: " + CatsFragment.class.getSimpleName();
-    private static final String STATE = "state";
+    private static final String CAT_POSITION = "cat position";
 
     private OnListFragmentInteractionListener mListener;
 
     private ProgressBar mProgressBar;
     private RecyclerView mRecyclerView;
-    private Context context;
+    private Context mContext;
 
-    private List<DataItem> cats = new ArrayList<>();
+    private List<DataItem> mCats = new ArrayList<>();
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -67,8 +67,8 @@ public class CatsFragment extends Fragment {
 //        super.onViewStateRestored(savedInstanceState);
 //
 //        if (savedInstanceState != null) {
-//            Parcelable savedRecyclerLayoutState = savedInstanceState.getParcelable(STATE);
-//            mRecyclerView.getLayoutManager().onRestoreInstanceState(savedRecyclerLayoutState);
+//            ((LinearLayoutManager) mRecyclerView.getLayoutManager())
+//                    .scrollToPositionWithOffset(savedInstanceState.getInt(CAT_POSITION), 0);
 //        }
 //    }
 
@@ -80,8 +80,8 @@ public class CatsFragment extends Fragment {
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.list);
 
         // Set the adapter
-        context = rootView.getContext();
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+        mContext = rootView.getContext();
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         return rootView;
     }
 
@@ -107,39 +107,54 @@ public class CatsFragment extends Fragment {
     public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
-        Log.d(TAG, "OnStart: Cats = " + cats.toString());
-        if (cats != null && !cats.isEmpty()) {
-            mRecyclerView.setAdapter(new MyItemRecyclerViewAdapter(cats, mListener, this));
+        Log.d(TAG, "OnStart: Cats = " + mCats.toString());
+        if (mCats != null && !mCats.isEmpty()) {
+            mRecyclerView.setAdapter(new MyItemRecyclerViewAdapter(mCats, mListener, this));
         } else {
             mRecyclerView.setVisibility(View.GONE);
             showProgress(true);
             DataReceiver.receiveData(getString(R.string.query_cat));
         }
 
-        if (XimTestApp.getCatsPosition() != 0) {
-            ((LinearLayoutManager) mRecyclerView.getLayoutManager())
-                    .scrollToPositionWithOffset(XimTestApp.getCatsPosition(), 0);
-            XimTestApp.setCatsPosition(0);
-        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume called, data to be restored: "
+                + (PreferenceManager.getDefaultSharedPreferences(getContext())
+                .getInt(CAT_POSITION, 0)));
+        ((LinearLayoutManager) mRecyclerView.getLayoutManager())
+                .scrollToPositionWithOffset(PreferenceManager.getDefaultSharedPreferences(getContext())
+                        .getInt(CAT_POSITION, 0), 0);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        PreferenceManager.getDefaultSharedPreferences(getContext())
+                .edit().putInt(CAT_POSITION, ((LinearLayoutManager) mRecyclerView.getLayoutManager())
+                .findFirstCompletelyVisibleItemPosition()).apply();
+        Log.d(TAG, "SharedPrefs are to be saved: " +
+                (PreferenceManager.getDefaultSharedPreferences(getContext())
+                        .getInt(CAT_POSITION, 0)));
     }
 
     @Override
     public void onStop() {
         super.onStop();
         EventBus.getDefault().unregister(this);
-        XimTestApp.setCatsPosition(((LinearLayoutManager)
-                mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition());
     }
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
-        Log.d(TAG, "Event received: " + event.getCode() + " " + event.getType() + " " +
-                event.getDataItems().toString());
+        Log.d(TAG, "Event received: " + event.getmCode() + " " + event.getmType() + " " +
+                event.getmDataItems().toString());
         showProgress(false);
         mRecyclerView.setVisibility(View.VISIBLE);
-        if (event.getCode() == 0 && event.getType().equalsIgnoreCase(getString(R.string.query_cat))) {
-            cats = event.getDataItems();
-            mRecyclerView.setAdapter(new MyItemRecyclerViewAdapter(cats, mListener, this));
+        if (event.getmCode() == 0 && event.getmType().equalsIgnoreCase(getString(R.string.query_cat))) {
+            mCats = event.getmDataItems();
+            mRecyclerView.setAdapter(new MyItemRecyclerViewAdapter(mCats, mListener, this));
         }
     }
 
@@ -147,10 +162,12 @@ public class CatsFragment extends Fragment {
         mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle state) {
-//        state.putParcelable(STATE, mRecyclerView.getLayoutManager().onSaveInstanceState());
-    }
+//    @Override
+//    public void onSaveInstanceState(Bundle state) {
+//        super.onSaveInstanceState(state);
+//        state.putInt(CAT_POSITION, ((LinearLayoutManager) mRecyclerView.getLayoutManager())
+//                .findFirstCompletelyVisibleItemPosition());
+//    }
 
     /**
      * This interface must be implemented by activities that contain this

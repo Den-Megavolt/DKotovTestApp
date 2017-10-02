@@ -16,7 +16,7 @@ public class ApiClient {
 
     private static final int TIMEOUT_SECONDS = 30;
 
-    private static Retrofit retrofit = null;
+    private static Retrofit mRetrofit = null;
 
     public static Retrofit getClient() {
 
@@ -25,15 +25,15 @@ public class ApiClient {
                 .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .build();
-        if (retrofit == null) {
-            retrofit = new Retrofit.Builder()
+        if (mRetrofit == null) {
+            mRetrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(okHttpClient)
                     .build();
         }
 
-        return retrofit;
+        return mRetrofit;
     }
 
 }

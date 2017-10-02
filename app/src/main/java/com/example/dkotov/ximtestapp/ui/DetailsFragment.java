@@ -26,8 +26,8 @@ public class DetailsFragment extends Fragment {
 
     private static final String TAG = "XimTestApp: " + DetailsFragment.class.getSimpleName();
 
-    private String url;
-    private String title;
+    private String mUrl;
+    private String mTitle;
 
     private OnFragmentInteractionListener mListener;
 
@@ -51,8 +51,8 @@ public class DetailsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "Intent: " + getActivity().getIntent());
         if (getActivity().getIntent() != null) {
-            url = getActivity().getIntent().getStringExtra(MainActivity.IMG_URL);
-            title = getActivity().getIntent().getStringExtra(MainActivity.TEXT_CONTENT);
+            mUrl = getActivity().getIntent().getStringExtra(MainActivity.IMG_URL);
+            mTitle = getActivity().getIntent().getStringExtra(MainActivity.TEXT_CONTENT);
         }
     }
 
@@ -64,9 +64,9 @@ public class DetailsFragment extends Fragment {
         ImageView imageView = (ImageView) rootView.findViewById(R.id.image_detailed);
         TextView textView = (TextView) rootView.findViewById(R.id.content_detailed);
 
-        Log.d(TAG, "Trying to get image: " + url);
-        Picasso.with(getContext()).load(url).into(imageView);
-        textView.setText(title);
+        Log.d(TAG, "Trying to get image: " + mUrl);
+        Picasso.with(getContext()).load(mUrl).into(imageView);
+        textView.setText(mTitle);
 
         return rootView;
     }

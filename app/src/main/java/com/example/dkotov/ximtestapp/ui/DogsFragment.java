@@ -2,16 +2,17 @@ package com.example.dkotov.ximtestapp.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import com.example.dkotov.ximtestapp.R;
-import com.example.dkotov.ximtestapp.XimTestApp;
 import com.example.dkotov.ximtestapp.model.DataItem;
 import com.example.dkotov.ximtestapp.model.MessageEvent;
 import com.example.dkotov.ximtestapp.util.DataReceiver;
@@ -31,16 +32,15 @@ import java.util.List;
 public class DogsFragment extends Fragment {
 
     private static final String TAG = "XimTestApp: " + DogsFragment.class.getSimpleName();
-    private static final String STATE = "state";
+    private static final String DOG_POSITION = "dog position";
 
     private OnListFragmentInteractionListener mListener;
 
     private ProgressBar mProgressBar;
     private RecyclerView mRecyclerView;
-    private Context context;
+    private Context mContext;
 
-    private List<DataItem> dogs = new ArrayList<>();
-    private int visiblePosition;
+    private List<DataItem> mDogs = new ArrayList<>();
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -69,8 +69,8 @@ public class DogsFragment extends Fragment {
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.list);
 
         // Set the adapter
-        context = rootView.getContext();
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+        mContext = rootView.getContext();
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         return rootView;
     }
 
@@ -96,36 +96,51 @@ public class DogsFragment extends Fragment {
     public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
-        if (dogs != null && !dogs.isEmpty()) {
-            mRecyclerView.setAdapter(new MyItemRecyclerViewAdapter2(dogs, mListener, this));
+        if (mDogs != null && !mDogs.isEmpty()) {
+            mRecyclerView.setAdapter(new MyItemRecyclerViewAdapter2(mDogs, mListener, this));
         } else {
             mRecyclerView.setVisibility(View.GONE);
             showProgress(true);
             DataReceiver.receiveData(getString(R.string.query_dog));
         }
 
-        if (XimTestApp.getDogsPosition() != 0) {
-            ((LinearLayoutManager) mRecyclerView.getLayoutManager())
-                    .scrollToPositionWithOffset(XimTestApp.getDogsPosition(), 0);
-            XimTestApp.setDogsPosition(0);
-        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume called, data to be restored: "
+                + (PreferenceManager.getDefaultSharedPreferences(getContext())
+                .getInt(DOG_POSITION, 0)));
+        ((LinearLayoutManager) mRecyclerView.getLayoutManager())
+                .scrollToPositionWithOffset(PreferenceManager.getDefaultSharedPreferences(getContext())
+                        .getInt(DOG_POSITION, 0), 0);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        PreferenceManager.getDefaultSharedPreferences(getContext())
+                .edit().putInt(DOG_POSITION, ((LinearLayoutManager) mRecyclerView.getLayoutManager())
+                .findFirstCompletelyVisibleItemPosition()).apply();
+        Log.d(TAG, "SharedPrefs are to be saved: " +
+                (PreferenceManager.getDefaultSharedPreferences(getContext())
+                        .getInt(DOG_POSITION, 0)));
     }
 
     @Override
     public void onStop() {
         super.onStop();
         EventBus.getDefault().unregister(this);
-        XimTestApp.setDogsPosition(((LinearLayoutManager)
-                mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition());
     }
 
     @Subscribe
     public void onMessageEvent(MessageEvent event) {
         showProgress(false);
         mRecyclerView.setVisibility(View.VISIBLE);
-        if (event.getCode() == 0 && event.getType().equalsIgnoreCase(getString(R.string.query_dog))) {
-            dogs = event.getDataItems();
-            mRecyclerView.setAdapter(new MyItemRecyclerViewAdapter2(event.getDataItems(), mListener, this));
+        if (event.getmCode() == 0 && event.getmType().equalsIgnoreCase(getString(R.string.query_dog))) {
+            mDogs = event.getmDataItems();
+            mRecyclerView.setAdapter(new MyItemRecyclerViewAdapter2(event.getmDataItems(), mListener, this));
         }
     }
 

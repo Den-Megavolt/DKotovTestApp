@@ -17,34 +17,6 @@ import okhttp3.Protocol;
 public class XimTestApp extends Application {
 
     private static final String TAG = "XimTestApp: " + XimTestApp.class.getSimpleName();
-    private static int startCounter = 0;
-
-    private static int catsPosition = 0;
-    private static int dogsPosition = 0;
-
-    public static void setStartCounter(int startCounter) {
-        XimTestApp.startCounter = startCounter;
-    }
-
-    public static int getStartCounter() {
-        return startCounter;
-    }
-
-    public static int getCatsPosition() {
-        return catsPosition;
-    }
-
-    public static void setCatsPosition(int catsPosition) {
-        XimTestApp.catsPosition = catsPosition;
-    }
-
-    public static int getDogsPosition() {
-        return dogsPosition;
-    }
-
-    public static void setDogsPosition(int dogsPosition) {
-        XimTestApp.dogsPosition = dogsPosition;
-    }
 
     @Override
     public void onCreate() {

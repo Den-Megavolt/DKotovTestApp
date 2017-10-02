@@ -8,25 +8,25 @@ import java.util.List;
 
 public class MessageEvent {
 
-    private final int code;
-    private final String type;
-    private List<DataItem> dataItems;
+    private final int mCode;
+    private final String mType;
+    private List<DataItem> mDataItems;
 
     public MessageEvent(int code, String type, List<DataItem> dataItems) {
-        this.code = code;
-        this.type = type;
-        this.dataItems = dataItems;
+        this.mCode = code;
+        this.mType = type;
+        this.mDataItems = dataItems;
     }
 
-    public int getCode() {
-        return code;
+    public int getmCode() {
+        return mCode;
     }
 
-    public String getType() {
-        return type;
+    public String getmType() {
+        return mType;
     }
 
-    public List<DataItem> getDataItems() {
-        return dataItems;
+    public List<DataItem> getmDataItems() {
+        return mDataItems;
     }
 }
